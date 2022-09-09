@@ -27,13 +27,13 @@ public class PagamentoController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<PagamentoResponse>> findAll(@PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<Page<PagamentoResponse>> listar(@PageableDefault(size = 10) Pageable pageable) {
 
         return ResponseEntity.ok(pagamentoRepository.findAll(pageable).map(PagamentoResponse::toResponse));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PagamentoResponse> findById(@PathVariable @NotNull Long id) {
+    public ResponseEntity<PagamentoResponse> detalhar(@PathVariable @NotNull Long id) {
 
         var pagamento = pagamentoRepository.findById(id).orElseThrow(()
                 -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -42,7 +42,7 @@ public class PagamentoController {
     }
 
     @PostMapping
-    public ResponseEntity<PagamentoResponse> save(@RequestBody @Valid PagamentoRequest pagamentoRequest,
+    public ResponseEntity<PagamentoResponse> salvar(@RequestBody @Valid PagamentoRequest pagamentoRequest,
                                                   UriComponentsBuilder uriBuilder) {
         var pagamento = pagamentoRequest.toModel();
 
@@ -53,7 +53,7 @@ public class PagamentoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PagamentoResponse> update(
+    public ResponseEntity<PagamentoResponse> atualizar(
             @PathVariable @NotNull Long id,
             @RequestBody @Valid PagamentoRequest pagamentoRequest) {
 
@@ -67,7 +67,7 @@ public class PagamentoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable @NotNull Long id) {
+    public ResponseEntity<Void> deletar(@PathVariable @NotNull Long id) {
 
         if(pagamentoRepository.findById(id).isPresent())
             pagamentoRepository.deleteById(id);

@@ -1,5 +1,5 @@
 CREATE TABLE pagamentos (
-    id SERIAL primary key ,
+    id bigint primary key ,
     valor decimal(19,2) not null ,
     nome varchar(100) not null,
     numero varchar(19) not null,
