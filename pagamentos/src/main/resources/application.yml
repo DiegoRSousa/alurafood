@@ -15,5 +15,13 @@ eureka:
     serviceUrl:
       defaultZone: http://localhost:8081/eureka
 
+resilience4j:
+  circuitbreaker:
+    instances:
+      confirmarPagamento:
+        slidingWindowSize: 3
+        minimumNumberOfCalls: 2
+        waitDurationInOpenState: 50s
+
 ms-pedidos:
   url: ${MS_PEDIDOS:http://localhost:8082/ms-pedidos}

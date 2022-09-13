@@ -5,6 +5,8 @@ import br.com.alurafood.pagamentos.dto.PagamentoResponse;
 import br.com.alurafood.pagamentos.http.PedidoClient;
 import br.com.alurafood.pagamentos.model.Status;
 import br.com.alurafood.pagamentos.repository.PagamentoRepository;
+import feign.Response;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -79,7 +81,9 @@ public class PagamentoController {
     }
 
     @PatchMapping("/{id}/confirmar")
-    public ResponseEntity<?> confirmarPagamento(@PathVariable @NotNull Long id) {
+    @CircuitBreaker(name = "confirmarPagamento",
+            fallbackMethod = "pagamentoConfirmadoComIntegracaoPendente")
+    public ResponseEntity<Void> confirmarPagamento(@PathVariable @NotNull Long id) {
 
         var pagamento = pagamentoRepository.findById(id).orElseThrow(()
                 -> new ResponseStatusException(HttpStatus.NOT_FOUND, "pagamento não encontrado!"));
@@ -90,5 +94,14 @@ public class PagamentoController {
         pedidoClient.confirmarPedido(pagamento.getPedidoId());
 
         return ResponseEntity.ok().build();
+    }
+
+    public ResponseEntity<Void> pagamentoConfirmadoComIntegracaoPendente(Long id, Exception e) {
+        var pagamento = pagamentoRepository.findById(id).orElseThrow(()
+                -> new ResponseStatusException(HttpStatus.NOT_FOUND, "pagamento não encontrado!"));
+
+        pagamento.setStatus(Status.CONFIRMADO_SEM_INTEGRACAO);
+        pagamentoRepository.save(pagamento);
+        return ResponseEntity.accepted().build();
     }
 }
