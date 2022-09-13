@@ -2,6 +2,7 @@ package br.com.alurafood.pedidos.controller;
 
 import br.com.alurafood.pedidos.dto.PedidoRequest;
 import br.com.alurafood.pedidos.dto.PedidoResponse;
+import br.com.alurafood.pedidos.model.Pedido;
 import br.com.alurafood.pedidos.model.Status;
 import br.com.alurafood.pedidos.repository.PedidoRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,8 +40,7 @@ public class PedidoController {
     @GetMapping("{id}")
     public ResponseEntity<PedidoResponse> detalhar(@PathVariable @NotNull Long id) {
 
-        var pedido = pedidoRepository.findById(id).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "pedido não encontrado!"));
+        var pedido = buscarPedidoPorId(id);
 
         return ResponseEntity.ok(new PedidoResponse(pedido));
     }
@@ -49,9 +49,7 @@ public class PedidoController {
     @PatchMapping("/{id}/confirmar")
     public ResponseEntity<Void> confirmarPedido(@PathVariable @NotNull Long id) {
 
-        var pedido = pedidoRepository.findById(id).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "pedido não encontrado!"));
-
+        var pedido = buscarPedidoPorId(id);
         pedido.setStatus(Status.CONFIRMADO);
         pedidoRepository.save(pedido);
         return ResponseEntity.ok().build();
@@ -61,5 +59,10 @@ public class PedidoController {
     @GetMapping("/porta")
     public String retornaPorta(@Value("${local.server.port}") String porta) {
         return String.format("requisicao respondida pela instância executando na porta %s", porta);
+    }
+
+    private Pedido buscarPedidoPorId(Long id) {
+        return pedidoRepository.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "pedido não encontrado!"));
     }
 }

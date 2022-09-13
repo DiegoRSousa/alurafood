@@ -3,6 +3,7 @@ package br.com.alurafood.pagamentos.controller;
 import br.com.alurafood.pagamentos.dto.PagamentoRequest;
 import br.com.alurafood.pagamentos.dto.PagamentoResponse;
 import br.com.alurafood.pagamentos.http.PedidoClient;
+import br.com.alurafood.pagamentos.model.Pagamento;
 import br.com.alurafood.pagamentos.model.Status;
 import br.com.alurafood.pagamentos.repository.PagamentoRepository;
 import feign.Response;
@@ -41,8 +42,7 @@ public class PagamentoController {
     @GetMapping("/{id}")
     public ResponseEntity<PagamentoResponse> detalhar(@PathVariable @NotNull Long id) {
 
-        var pagamento = pagamentoRepository.findById(id).orElseThrow(()
-                -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        var pagamento = buscarPagamentoPorId(id);
 
         return ResponseEntity.ok(PagamentoResponse.toResponse(pagamento));
     }
@@ -63,8 +63,7 @@ public class PagamentoController {
             @PathVariable @NotNull Long id,
             @RequestBody @Valid PagamentoRequest pagamentoRequest) {
 
-        var pagamento = pagamentoRepository.findById(id).orElseThrow(()
-            -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        var pagamento = buscarPagamentoPorId(id);
 
         pagamento.update(pagamentoRequest.toModel());
         pagamentoRepository.save(pagamento);
@@ -85,8 +84,7 @@ public class PagamentoController {
             fallbackMethod = "pagamentoConfirmadoComIntegracaoPendente")
     public ResponseEntity<Void> confirmarPagamento(@PathVariable @NotNull Long id) {
 
-        var pagamento = pagamentoRepository.findById(id).orElseThrow(()
-                -> new ResponseStatusException(HttpStatus.NOT_FOUND, "pagamento não encontrado!"));
+        var pagamento = buscarPagamentoPorId(id);
 
         pagamento.setStatus(Status.CONFIRMADO);
         pagamentoRepository.save(pagamento);
@@ -97,11 +95,16 @@ public class PagamentoController {
     }
 
     public ResponseEntity<Void> pagamentoConfirmadoComIntegracaoPendente(Long id, Exception e) {
-        var pagamento = pagamentoRepository.findById(id).orElseThrow(()
-                -> new ResponseStatusException(HttpStatus.NOT_FOUND, "pagamento não encontrado!"));
+
+        var pagamento = buscarPagamentoPorId(id);
 
         pagamento.setStatus(Status.CONFIRMADO_SEM_INTEGRACAO);
         pagamentoRepository.save(pagamento);
         return ResponseEntity.accepted().build();
+    }
+
+    private Pagamento buscarPagamentoPorId(Long id) {
+        return pagamentoRepository.findById(id).orElseThrow(()
+                -> new ResponseStatusException(HttpStatus.NOT_FOUND, "pagamento não encontrado!"));
     }
 }
