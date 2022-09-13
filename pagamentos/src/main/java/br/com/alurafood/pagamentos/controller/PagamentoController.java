@@ -2,6 +2,8 @@ package br.com.alurafood.pagamentos.controller;
 
 import br.com.alurafood.pagamentos.dto.PagamentoRequest;
 import br.com.alurafood.pagamentos.dto.PagamentoResponse;
+import br.com.alurafood.pagamentos.http.PedidoClient;
+import br.com.alurafood.pagamentos.model.Status;
 import br.com.alurafood.pagamentos.repository.PagamentoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,9 +23,11 @@ import java.net.URI;
 public class PagamentoController {
 
     private final PagamentoRepository pagamentoRepository;
+    private final PedidoClient pedidoClient;
 
-    public PagamentoController(PagamentoRepository pagamentoRepository) {
+    public PagamentoController(PagamentoRepository pagamentoRepository, PedidoClient pedidoClient) {
         this.pagamentoRepository = pagamentoRepository;
+        this.pedidoClient = pedidoClient;
     }
 
     @GetMapping
@@ -72,5 +76,19 @@ public class PagamentoController {
         if(pagamentoRepository.findById(id).isPresent())
             pagamentoRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/confirmar")
+    public ResponseEntity<?> confirmarPagamento(@PathVariable @NotNull Long id) {
+
+        var pagamento = pagamentoRepository.findById(id).orElseThrow(()
+                -> new ResponseStatusException(HttpStatus.NOT_FOUND, "pagamento não encontrado!"));
+
+        pagamento.setStatus(Status.CONFIRMADO);
+        pagamentoRepository.save(pagamento);
+
+        pedidoClient.confirmarPedido(pagamento.getPedidoId());
+
+        return ResponseEntity.ok().build();
     }
 }
