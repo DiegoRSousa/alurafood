@@ -5,6 +5,8 @@ import br.com.alurafood.pedidos.dto.PedidoResponse;
 import br.com.alurafood.pedidos.model.Pedido;
 import br.com.alurafood.pedidos.model.Status;
 import br.com.alurafood.pedidos.repository.PedidoRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +24,17 @@ public class PedidoController {
 
     private final PedidoRepository pedidoRepository;
 
-    public PedidoController(PedidoRepository pedidoRepository) {
+    private final Counter pedidoEncontrado;
+    private final Counter pedidoNaoEncontrado;
+
+    public PedidoController(PedidoRepository pedidoRepository, MeterRegistry meterRegistry) {
         this.pedidoRepository = pedidoRepository;
+        pedidoEncontrado = Counter.builder("pedido_encontrado")
+                .description("pedidos encontrados")
+                .register(meterRegistry);
+        pedidoNaoEncontrado = Counter.builder("pedido_nao_encontrado")
+                .description("pedidos não encontrados")
+                .register(meterRegistry);
     }
 
     @PostMapping
@@ -62,7 +73,11 @@ public class PedidoController {
     }
 
     private Pedido buscarPedidoPorId(Long id) {
-        return pedidoRepository.findById(id).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "pedido não encontrado!"));
+        var pedidos = pedidoRepository.findById(id).orElseThrow(() -> {
+            pedidoNaoEncontrado.increment();
+            return new ResponseStatusException(HttpStatus.NOT_FOUND, "pedido não encontrado!");
+        });
+        pedidoEncontrado.increment();
+        return pedidos;
     }
 }
