@@ -4,5 +4,4 @@ metadata:
   name: pedidos
 data:
   EUREKA_URL: http://server:8081/eureka
-  MYSQL_URL: jdbc:mysql://alurafood-bd:3306/alurafood-pedido?createDatabaseIfNotExist=true
   PORT: '8083'
