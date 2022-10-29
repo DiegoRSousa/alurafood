@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: pagamentos
-        image: pagamentos:v4
+        image: pagamentos:v1
         resources:
           limits:
             memory: "512Mi"
