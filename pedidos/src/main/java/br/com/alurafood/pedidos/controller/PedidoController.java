@@ -7,7 +7,12 @@ import br.com.alurafood.pedidos.model.Status;
 import br.com.alurafood.pedidos.repository.PedidoRepository;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +27,7 @@ import java.net.URI;
 @RequestMapping("/pedidos")
 public class PedidoController {
 
+    private static Logger logger = LoggerFactory.getLogger(PedidoController.class);
     private final PedidoRepository pedidoRepository;
 
     private final Counter pedidoEncontrado;
@@ -47,6 +53,15 @@ public class PedidoController {
         return ResponseEntity.created(uri).build();
 
     }
+
+    @GetMapping
+    public ResponseEntity<Page<PedidoResponse>> listar(@PageableDefault(size = 3) Pageable pageable) {
+        logger.info("buscando por todos os registros");
+        var pedidos = pedidoRepository.findAll(pageable);
+
+        return ResponseEntity.ok(pedidos.map(PedidoResponse::new));
+    }
+
 
     @GetMapping("{id}")
     public ResponseEntity<PedidoResponse> detalhar(@PathVariable @NotNull Long id) {
