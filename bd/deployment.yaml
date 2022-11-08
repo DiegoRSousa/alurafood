@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alurafood-bd
+spec:
+  selector:
+    matchLabels:
+      app: alurafood-bd
+  template:
+    metadata:
+      labels:
+        app: alurafood-bd
+    spec:
+      containers:
+      - name: alurafood-bd
+        image: mysql:8.0.30
+        envFrom:
+          - configMapRef:
+              name: alurafood-bd
+        resources:
+          limits:
+            memory: "1024Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 3306
