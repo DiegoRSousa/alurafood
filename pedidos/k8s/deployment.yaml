@@ -23,20 +23,6 @@ spec:
         envFrom:
           - configMapRef:
               name: pedidos
-        env:
-          - name: MYSQL_URL
-            valueFrom:
-              secretKeyRef:
-                key: url
-                name: pedidos
-          - name: MYSQL_USERNAME
-            valueFrom:
-              secretKeyRef:
-                key: username
-                name: pedidos
-          - name: MYSQL_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                key: password
-                name: pedidos
+          - secretRef:
+              name: pedidos
 
